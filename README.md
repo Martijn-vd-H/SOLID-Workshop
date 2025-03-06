@@ -8,3 +8,5 @@ Jest installeren
 	`npm install --save-dev jest @types/jest ts-jest`
 
 `npm install --save-dev @babel/preset-typescript`
+
+`npm run test`
