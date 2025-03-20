@@ -1,6 +1,6 @@
 ﻿namespace OrderModule.Core.Services;
 
-public class APICaller
+public class OrderClient
 {
     public bool PlaceOrder(HardwareType type, int number)
     {

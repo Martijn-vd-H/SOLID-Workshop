@@ -1,8 +1,8 @@
 ﻿namespace OrderModule.Core.Services;
 
-public class Emailer
+public class EmailService
 {
-    public static void SendEmail(Email email)
+    public void SendEmail(Email email)
     {
         Console.WriteLine(email.Body);
     }
