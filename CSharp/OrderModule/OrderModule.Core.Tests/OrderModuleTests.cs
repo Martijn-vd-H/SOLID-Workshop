@@ -1,10 +1,12 @@
-﻿using OrderModule.Core.Interfaces;
+﻿using System;
+using System.Collections.Generic;
+using NUnit.Framework;
+using OrderModule.Core;
+using OrderModule.Core.Interfaces;
 using OrderModule.Core.Services;
 
 namespace OrderModule.Core.Tests
 {
-    // --- Fake Implementations for Testing ---
-
     public class FakeOrderValidator : IOrderValidator
     {
         public void Validate(HardwareType type, int number)
@@ -16,38 +18,11 @@ namespace OrderModule.Core.Tests
         }
     }
 
-    public class FakeAPICaller : IAPICaller
-    {
-        public bool PlaceOrder(HardwareType type, int number)
-        {
-            // Always succeed in tests.
-            return true;
-        }
-    }
-
-    public class FakePriceCalculator : IPriceCalculator
-    {
-        public decimal CalculatePrice(HardwareType type, int number)
-        {
-            switch (type)
-            {
-                case HardwareType.Laptop:
-                    return 1200 * number;
-                case HardwareType.Monitor:
-                    return 250 * number;
-                case HardwareType.Desk:
-                    return 550 * number;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
-            }
-        }
-    }
-
     public class FakeEmailService : IEmailService
     {
         public void SendEmail(Email email)
         {
-            // Do nothing, or record email if needed for further assertions.
+            // Do nothing (or record the email details if needed for further assertions)
         }
     }
 
@@ -55,13 +30,17 @@ namespace OrderModule.Core.Tests
     {
         public void LogError(string message)
         {
+            // Optionally record log messages for verification.
         }
 
         public void LogInfo(string message)
         {
+            // Optionally record log messages for verification.
         }
     }
-    
+
+    // --- Unit Tests ---
+
     public class OrderModuleTests
     {
         private OrderModule _orderModule;
@@ -69,30 +48,71 @@ namespace OrderModule.Core.Tests
         [SetUp]
         public void Setup()
         {
-            var orderValidator = new FakeOrderValidator();
-            var apiCaller = new FakeAPICaller();
-            var priceCalculator = new FakePriceCalculator();
-            var emailService = new FakeEmailService();
-            var logger = new FakeLogger();
+            IOrderValidator orderValidator = new FakeOrderValidator();
 
-            _orderModule = new OrderModule(orderValidator, apiCaller, priceCalculator, emailService, logger);
+            // Setup price strategies for tests.
+            var priceStrategies = new Dictionary<HardwareType, IPriceStrategy>
+            {
+                { HardwareType.Laptop, new LaptopPriceStrategy() },
+                { HardwareType.Monitor, new MonitorPriceStrategy() },
+                { HardwareType.Desk, new DeskPriceStrategy() }
+            };
+
+            IPriceCalculator priceCalculator = new PriceCalculator(priceStrategies);
+            IAPICaller apiCaller = new APICaller(priceCalculator);
+            IEmailService emailService = new FakeEmailService();
+            ILogger logger = new FakeLogger();
+
+            _orderModule = new OrderModule(orderValidator, apiCaller, emailService, logger);
         }
 
         [Test]
         public void Order_Should_ThrowExceptionOnValidationFailed()
         {
-            // Expect an exception when the order number is invalid
+            // Expect an exception when the order number is invalid.
             Assert.Throws<ArgumentException>(() => _orderModule.Order(HardwareType.Laptop, 0));
         }
 
         [Test]
-        public void Order_Should_CalculateTotalPrice()
+        public void Order_Should_CalculateTotalPrice_ForLaptop()
         {
-            // Act
+            // Act: Order 3 laptops.
             _orderModule.Order(HardwareType.Laptop, 3);
 
-            // Assert: For 3 Laptops, the total price should be 3600.
+            // Assert: For 3 laptops, the price should be 3600 (3 * 1200).
             Assert.That(_orderModule.LastCalculatedPrice, Is.EqualTo(3600));
+        }
+
+        [Test]
+        public void Order_Should_CalculateTotalPrice_ForMonitor()
+        {
+            // Act: Order 6 monitors.
+            _orderModule.Order(HardwareType.Monitor, 6);
+
+            // Assert: For 6 monitors, the price should be 1500 (6 * 250).
+            Assert.That(_orderModule.LastCalculatedPrice, Is.EqualTo(1500));
+        }
+
+        [Test]
+        public void Order_Should_CalculateTotalPrice_ForDesk()
+        {
+            // Act: Order 2 desks.
+            _orderModule.Order(HardwareType.Desk, 2);
+
+            // Assert: For 2 desks, the price should be 1100 (2 * 550).
+            Assert.That(_orderModule.LastCalculatedPrice, Is.EqualTo(1100));
+        }
+
+        [TestCase(HardwareType.Laptop, 5, 6000)]
+        [TestCase(HardwareType.Monitor, 4, 1000)]
+        [TestCase(HardwareType.Desk, 3, 1650)]
+        public void Order_Should_CalculateTotalPrice_ForVariousHardwareTypes(HardwareType type, int quantity, decimal expectedPrice)
+        {
+            // Act: Order the specified hardware type.
+            _orderModule.Order(type, quantity);
+
+            // Assert: The calculated price matches the expected price.
+            Assert.That(_orderModule.LastCalculatedPrice, Is.EqualTo(expectedPrice));
         }
     }
 }

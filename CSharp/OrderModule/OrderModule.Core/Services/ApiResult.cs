@@ -1,9 +1,8 @@
-﻿using OrderModule.Core.Interfaces;
-
-namespace OrderModule.Core.Services;
-
-public class ApiResult
+﻿namespace OrderModule.Core.Services
 {
-    public bool HasSucceeded { get; set; }
-    public int Price { get; set; }
+    public class ApiResult
+    {
+        public bool HasSucceeded { get; set; }
+        public int Price { get; set; }
+    }
 }

@@ -1,24 +1,23 @@
 using OrderModule.Core.Interfaces;
 
-public class PriceCalculator : IPriceCalculator
+namespace OrderModule.Core.Services
 {
-    public decimal CalculatePrice(HardwareType type, int number)
+    public class PriceCalculator : IPriceCalculator
     {
-        decimal price = 0;
-        switch (type)
+        private readonly IDictionary<HardwareType, IPriceStrategy> _strategies;
+
+        public PriceCalculator(IDictionary<HardwareType, IPriceStrategy> strategies)
         {
-            case HardwareType.Laptop:
-                price = 1200 * number;
-                break;
-            case HardwareType.Monitor:
-                price = 250 * number;
-                break;
-            case HardwareType.Desk:
-                price = 550 * number;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(type), type, null);
+            _strategies = strategies;
         }
-        return price;
+
+        public decimal CalculatePrice(HardwareType type, int number)
+        {
+            if (!_strategies.TryGetValue(type, out var strategy))
+            {
+                throw new ArgumentOutOfRangeException(nameof(type), type, "No price strategy found for the given hardware type.");
+            }
+            return strategy.CalculatePrice(number);
+        }
     }
 }

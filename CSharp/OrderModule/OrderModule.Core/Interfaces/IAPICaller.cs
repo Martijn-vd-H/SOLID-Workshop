@@ -1,6 +1,9 @@
-namespace OrderModule.Core.Interfaces;
+using OrderModule.Core.Services;
 
-public interface IAPICaller
+namespace OrderModule.Core.Interfaces
 {
-    bool PlaceOrder(HardwareType type, int number);
+    public interface IAPICaller
+    {
+        ApiResult PlaceOrder(HardwareType type, int number);
+    }
 }

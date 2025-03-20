@@ -1,12 +1,23 @@
-﻿using OrderModule.Core.Interfaces;
+﻿using System;
+using OrderModule.Core.Interfaces;
+using OrderModule.Core.Services;
 
-namespace OrderModule.Core.Services;
-
-public class APICaller : IAPICaller
+namespace OrderModule.Core.Services
 {
-    public bool PlaceOrder(HardwareType type, int number)
+    public class APICaller : IAPICaller
     {
-        Console.WriteLine($"Ordering {number} of type {type}...");
-        return true;
+        private readonly IPriceCalculator _priceCalculator;
+
+        public APICaller(IPriceCalculator priceCalculator)
+        {
+            _priceCalculator = priceCalculator;
+        }
+
+        public ApiResult PlaceOrder(HardwareType type, int number)
+        {
+            Console.WriteLine($"Ordering {number} of type {type}...");
+            decimal price = _priceCalculator.CalculatePrice(type, number);
+            return new ApiResult { HasSucceeded = true, Price = (int)price };
+        }
     }
 }
