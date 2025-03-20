@@ -26,10 +26,8 @@ public class OrderModule
 
         // Order hardware with api
         var result = _apiCaller.PlaceOrder(type, number);
-        if (!result.HasSucceeded)
-        {
-            throw new Exception("Order failed");
-        }
+        
+        _validator.ValidateApiResult(result);
 
         // Calculate price
         var price = result.Price;

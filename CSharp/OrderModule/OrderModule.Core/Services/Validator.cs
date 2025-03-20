@@ -14,9 +14,18 @@ namespace OrderModule.Core.Services
         {
             if (amount < 1 || amount > 30)
             {
-                return false;
                 throw new ArgumentException($"Order {amount} of type {type} seems incorrect");
             }
+            return true;
+        }
+
+        public bool ValidateApiResult(ApiResult result)
+        {
+            if (!result.HasSucceeded)
+            {
+                throw new Exception("Order failed");
+            }
+
             return true;
         }
     }

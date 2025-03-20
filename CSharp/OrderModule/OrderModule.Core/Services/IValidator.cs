@@ -9,5 +9,6 @@ namespace OrderModule.Core.Services
     public interface IValidator
     {
         bool ValidateAmountToOrder(int amount, HardwareType type);
+        bool ValidateApiResult(ApiResult result);
     }
 }
