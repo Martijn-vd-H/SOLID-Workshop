@@ -1,6 +1,8 @@
-﻿namespace OrderModule.Core.Services;
+﻿using OrderModule.Core.Interfaces;
 
-public class APICaller
+namespace OrderModule.Core.Services;
+
+public class APICaller : IAPICaller
 {
     public bool PlaceOrder(HardwareType type, int number)
     {

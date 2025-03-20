@@ -1,4 +1,6 @@
-﻿namespace OrderModule.Core.Services;
+﻿using OrderModule.Core.Interfaces;
+
+namespace OrderModule.Core.Services;
 
 public class ApiResult
 {
