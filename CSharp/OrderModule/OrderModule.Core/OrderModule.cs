@@ -1,54 +1,47 @@
 ﻿using OrderModule.Core.Services;
+using OrderModule.Core.Services.Calculator;
+using OrderModule.Core.Services.EmailService;
 
 namespace OrderModule.Core;
 
 public class OrderModule
 {
+    private IEmailer _emailer;
+    private IEmailComposer _emailComposer;
+    private IValidator _validator;
+    private IAPICaller _apiCaller;
+
+    public OrderModule(IEmailer emailer, IEmailComposer emailComposer, IValidator validator, IAPICaller apiCaller)
+    {
+        _emailer = emailer;
+        _emailComposer = emailComposer;
+        _validator = validator;
+        _apiCaller = apiCaller;
+    }
+
     public void Order(HardwareType type, int number)
     {
         // Validation
-        if (number < 1 || number > 30)
-        {
-            throw new ArgumentException($"Order {number} of type {type} seems incorrect");
-        }
-        
+        _validator.ValidateAmountToOrder(number, type);
+
         // Order hardware with api
-        var apiCaller = new APICaller();
-        var result = apiCaller.PlaceOrder(type, number);
-        if (!result)
+        var result = _apiCaller.PlaceOrder(type, number);
+        if (!result.HasSucceeded)
         {
             throw new Exception("Order failed");
         }
 
         // Calculate price
-        var price = 0;
-        switch (type)
-        {
-            case HardwareType.Laptop:
-                price = 1200 * number;
-                break;
-            case HardwareType.Monitor:
-                price = 250 * number;
-                break;
-            case HardwareType.Desk:
-                price = 550 * number;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(type), type, null);
-        }
+        var price = result.Price;
         
         // Compose and send email
         var address = "itbusiness@example.com";
         var orderDetails = $"{number} of {type}";
         var invoiceDetails = $"Customer email: {address}\nDetails: {orderDetails}\nPrice: {price}";
-        var email = new Email()
-        {
-            To = address,
-            From = "Ordermodule@example.com",
-            Header = $"Invoice {type}",
-            Body = invoiceDetails,
-        };
-        Emailer.SendEmail(email);
+        
+        var email = _emailComposer.ComposeEmail(address, "Invoice", invoiceDetails);
+
+        _emailer.SendEmail(email);
         
         Console.WriteLine("Order processed");
     }
