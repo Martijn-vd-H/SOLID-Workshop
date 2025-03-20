@@ -1,24 +1,68 @@
 using OrderModule.Core.Interfaces;
 
-public class PriceCalculator : IPriceCalculator
+public interface IPriceCalculator
 {
-    public decimal CalculatePrice(HardwareType type, int number)
+    decimal CalculatePrice(int number);
+}
+
+public class LaptopPriceCalculator : IPriceCalculator
+{
+    public decimal CalculatePrice(int number) => 1200 * number;
+}
+
+public class MonitorPriceCalculator : IPriceCalculator
+{
+    public decimal CalculatePrice(int number) => 250 * number;
+}
+
+public class DeskPriceCalculator : IPriceCalculator
+{
+    public decimal CalculatePrice(int number) => 550 * number;
+}
+
+// Factory to get the right calculator dynamically
+public interface IPriceCalculatorFactory
+{
+    IPriceCalculator GetCalculator(HardwareType type);
+}
+
+public class PriceCalculatorFactory : IPriceCalculatorFactory
+{
+    private readonly Dictionary<HardwareType, IPriceCalculator> _calculators;
+
+    public PriceCalculatorFactory()
     {
-        decimal price = 0;
-        switch (type)
+        _calculators = new Dictionary<HardwareType, IPriceCalculator>
         {
-            case HardwareType.Laptop:
-                price = 1200 * number;
-                break;
-            case HardwareType.Monitor:
-                price = 250 * number;
-                break;
-            case HardwareType.Desk:
-                price = 550 * number;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(type), type, null);
+            { HardwareType.Laptop, new LaptopPriceCalculator() },
+            { HardwareType.Monitor, new MonitorPriceCalculator() },
+            { HardwareType.Desk, new DeskPriceCalculator() }
+        };
+    }
+
+    public IPriceCalculator GetCalculator(HardwareType type)
+    {
+        if (!_calculators.TryGetValue(type, out var calculator))
+        {
+            throw new ArgumentOutOfRangeException(nameof(type), $"No price calculator found for {type}");
         }
-        return price;
+        return calculator;
+    }
+}
+
+// Usage
+public class OrderService
+{
+    private readonly PriceCalculatorFactory _priceCalculatorFactory;
+
+    public OrderService(PriceCalculatorFactory priceCalculatorFactory)
+    {
+        _priceCalculatorFactory = priceCalculatorFactory;
+    }
+
+    public decimal CalculateOrderPrice(HardwareType type, int quantity)
+    {
+        var calculator = _priceCalculatorFactory.GetCalculator(type);
+        return calculator.CalculatePrice(quantity);
     }
 }

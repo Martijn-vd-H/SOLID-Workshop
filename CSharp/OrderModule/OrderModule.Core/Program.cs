@@ -6,14 +6,14 @@ using OrderModule.Core.Services;
 ILogger logger = new ConsoleLogger();
 IOrderValidator orderValidator = new OrderValidator();
 IAPICaller apiCaller = new APICaller();
-IPriceCalculator priceCalculator = new PriceCalculator();
+IPriceCalculatorFactory priceCalculatorFactory = new PriceCalculatorFactory();
 IEmailService emailService = new EmailService(); 
 
 // Instantiate the OrderModule with its dependencies
 var orderModule = new OrderModule.Core.OrderModule(
     orderValidator,
     apiCaller,
-    priceCalculator,
+    priceCalculatorFactory,
     emailService,
     logger);
 
