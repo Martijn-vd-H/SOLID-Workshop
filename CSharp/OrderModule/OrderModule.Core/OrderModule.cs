@@ -1,55 +1,77 @@
-﻿using OrderModule.Core.Services;
+﻿using OrderModule.Core.Interfaces;
+using OrderModule.Core.Services;
 
 namespace OrderModule.Core;
 
 public class OrderModule
 {
+    private readonly IOrderValidator _orderValidator;
+    private readonly IAPICaller _apiCaller;
+    private readonly IPriceCalculator _priceCalculator;
+    private readonly IEmailService _emailService;
+    private readonly ILogger _logger;
+    
+    public decimal LastCalculatedPrice { get; private set; }
+
+
+    public OrderModule(IOrderValidator orderValidator,
+        IAPICaller apiCaller,
+        IPriceCalculator priceCalculator,
+        IEmailService emailService,
+        ILogger logger)
+    {
+        _orderValidator = orderValidator;
+        _apiCaller = apiCaller;
+        _priceCalculator = priceCalculator;
+        _emailService = emailService;
+        _logger = logger;
+    }
+
     public void Order(HardwareType type, int number)
     {
-        // Validation
-        if (number < 1 || number > 30)
+        try
         {
-            throw new ArgumentException($"Order {number} of type {type} seems incorrect");
-        }
-        
-        // Order hardware with api
-        var apiCaller = new APICaller();
-        var result = apiCaller.PlaceOrder(type, number);
-        if (!result)
-        {
-            throw new Exception("Order failed");
-        }
+            _logger.LogInfo("Starting order process");
 
-        // Calculate price
-        var price = 0;
-        switch (type)
-        {
-            case HardwareType.Laptop:
-                price = 1200 * number;
-                break;
-            case HardwareType.Monitor:
-                price = 250 * number;
-                break;
-            case HardwareType.Desk:
-                price = 550 * number;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(type), type, null);
+            // Validate the order
+            _orderValidator.Validate(type, number);
+            _logger.LogInfo("Order validated");
+
+            // Place the order via API
+            _logger.LogInfo("Placing order via API");
+            var result = _apiCaller.PlaceOrder(type, number);
+            if (!result)
+            {
+                _logger.LogError("API order placement failed");
+                throw new Exception("Order failed");
+            }
+            _logger.LogInfo("API order placement succeeded");
+
+            // Calculate price and record it
+            LastCalculatedPrice = _priceCalculator.CalculatePrice(type, number);
+            _logger.LogInfo($"Price calculated: {LastCalculatedPrice}");
+
+            // Compose and send email
+            var address = "itbusiness@example.com";
+            var orderDetails = $"{number} of {type}";
+            var invoiceDetails = $"Customer email: {address}\nDetails: {orderDetails}\nPrice: {LastCalculatedPrice}";
+            var email = new Email
+            {
+                To = address,
+                From = "Ordermodule@example.com",
+                Header = $"Invoice {type}",
+                Body = invoiceDetails,
+            };
+            _emailService.SendEmail(email);
+            _logger.LogInfo("Order email sent");
+
+            Console.WriteLine("Order processed");
+            _logger.LogInfo("Order process completed successfully");
         }
-        
-        // Compose and send email
-        var address = "itbusiness@example.com";
-        var orderDetails = $"{number} of {type}";
-        var invoiceDetails = $"Customer email: {address}\nDetails: {orderDetails}\nPrice: {price}";
-        var email = new Email()
+        catch (Exception ex)
         {
-            To = address,
-            From = "Ordermodule@example.com",
-            Header = $"Invoice {type}",
-            Body = invoiceDetails,
-        };
-        Emailer.SendEmail(email);
-        
-        Console.WriteLine("Order processed");
+            _logger.LogError($"Order process encountered an error: {ex.Message}");
+            throw;
+        }
     }
 }
