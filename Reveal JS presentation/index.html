@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SOLID Workshop</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js/dist/theme/moon.css">
+    <link rel="stylesheet" href="plugin/highlight/monokai.css" />
+</head>
+
+<body>
+    <div class="reveal">
+        <div class="slides">
+            <section data-background="Software transformation 2.png">
+                <h1>SOLID Principles Workshop</h1>
+            </section>
+            <section>
+                <h2>Setup</h2>
+                <pre>https://dev.azure.com/vitasit/Vitas%20Academy%20Students/_git/SOLID-Workshop</pre>
+                <ul>
+                    <li>Git clone</li>
+                    <li>Visual Studio, VSCode, Rider</li>
+                    <li><b>C#:</b> .NET8 SDK</li>
+                    <li><b>TypeScript:</b> NodeJS LTS</li>
+                    <li>Zie <b>Readme.md</b> in de Git repository</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Agenda</h2>
+                <p class="fragment">1. <b>Introductie</b></p>
+                <p class="fragment">2. <b>Overzicht van de SOLID-principes</b></p>
+                <p class="fragment">3. <b>Eten</b></p>
+                <p class="fragment">4. <b>Praktische oefening: SOLID-overtredingen</b></p>
+                <p class="fragment">5. <b>Pull Requests & Peer Reviews</b></p>
+                <p class="fragment">6. <b>Afsluiting</b></p>
+            </section>
+
+            <section>
+                <h2>Wie zijn jullie</h2>
+                <ul>
+                    <li><b>Naam en waar je huis woont</b> 🏠</li>
+                    <li><b>Huidige klus en gebruikte technologie</b> 💼</li>
+                    <li><b>Hoe lang ontwikkel je al software?</b>🔍</li>
+                    <li><b>Belangrijkste hobby</b> 🎨</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Wie ben ik 👋</h2>
+                <ul>
+                    <li><b>Martijn van den Hoven</b></li>
+                    <li>.NET Developer sinds 2013</li>
+                    <li>Bij Vitas sinds Nov 2023</li>
+                    <li>TDD, Automated Testing, Clean Code, Continuous Delivery</li>
+                    <li>Muziek, krachttraining, binnenkort vader</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>PR Workflow</h2>
+                <ul>
+                    <li>Nieuwe branch vanaf main</li>
+                    <li>Changes committen</li>
+                    <li>Pull request aanmaken</li>
+                    <li>Werk van elkaar nakijken</li>
+                    <li>We mergen een oplossingsbranch naar main en gaan daarop verder</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Waarom de SOLID-principes?</h2>
+                <p class="fragment">Reduceren van Complexiteit</p>
+                <p class="fragment">Aanpassen wordt makkelijker (risico, grootte)</p>
+                <p class="fragment">Voorspelbaarheid van het systeem</p>
+                <p class="fragment">Beter testbaar</p>
+                <p class="fragment">Meer flexibiliteit</p>
+                <hr class="fragment">
+                <p class="fragment"><b>Het omgekeerde hiervan zijn indicaties van slecht opgezette code</b></p>
+            </section>
+
+            <section>
+                <h2>Welke principes zijn er?</h2>
+                <i>Robert C. Martin (Uncle Bob)</i>
+                <p class="fragment"><b>S</b>ingle Responsibility Principle (SRP)</p>
+                <p class="fragment"><b>O</b>pen/Closed Principle (OCP)</p>
+                <p class="fragment"><b>L</b>iskov Substitution Principle (LSP)</p>
+                <p class="fragment"><b>I</b>nterface Segregation Principle (ISP)</p>
+                <p class="fragment"><b>D</b>ependency Inversion Principle (DIP)</p>
+            </section>
+
+            <section>
+                <h2><b>S</b>ingle Responsibility Principle (SRP)</h2>
+                <blockquote>"A class should have only one reason to change."</blockquote>
+                <p class="fragment">✅ Een <b>eenheid</b> moet één taak hebben.</p>
+                <p class="fragment">✅ Als een eenheid om meerdere redenen verandert, <b>splits het op</b>.</p>
+            </section>
+
+            <section>
+                <pre><code data-trim class="language-csharp" data-line-numbers="4|8|11">
+public bool AuthenticateUser(string username, string password)
+{
+	// Step 1: Validate credentials
+	var user = database.GetUserByUsername(username);
+	if (user == null || user.Password != password)
+	{
+		// Step 2: Log failed attempt
+		logger.Log($"Failed login attempt for user: {username}");
+
+		// Step 3: Send security alert email
+		emailService.Send(user.Email, "Security Alert", "There was a failed login attempt on your account.");
+		return false;
+	}
+
+	return true;
+}
+                    </code></pre>
+            </section>
+
+            <section>
+                <pre><code data-trim class="language-csharp" data-line-numbers="3-6">
+public bool AuthenticateUser(string username, string password)
+{
+    if (!_validator.IsValidUser(username, password))
+    {
+        _logger.LogFailedAttempt(username);
+        _notifier.NotifyUserOfFailedLogin(username);
+        return false;
+    }
+
+    return true;
+}
+                    </code></pre>
+            </section>
+
+            <section data-background="SRP_Example.png" data-background-size="contain">
+            </section>
+
+            <section>
+                <h2><b>O</b>pen/Closed Principle (OCP)</h2>
+                <blockquote>"Software entities should be open for extension, but closed for modification."</blockquote>
+                <p class="fragment">✅ Voeg nieuwe functionaliteit toe <b>zonder bestaande code te wijzigen</b>.</p>
+                <p class="fragment">✅ Gebruik <b>abstractie</b> (interfaces, inheritance of composition).</p>
+                <p class="fragment">✅ Minder risico op het stuk maken van bestaande code.</p>
+            </section>
+
+            <section data-background="OCP_Example.png" data-background-size="contain">
+            </section>
+
+            <section>
+                <h2><b>L</b>iskov Substitution Principle (LSP)</h2>
+                <blockquote>"Derived classes must be substitutable for their base class."</blockquote>
+                <p class="fragment">✅ Gedrag <b>uitbreiden</b>, niet <b>veranderen</b>.</p>
+                <p class="fragment">✅ Vermijd overrides als dit bestaande <b>verwachtingen verbreekt</b>.</p>
+                <p class="fragment">✅ Heroverweeg inheritance (interfaces vs. abstract vs. geen inheritance).</p>
+            </section>
+
+            <section data-background="LSP_Example.png" data-background-size="contain">
+            </section>
+
+            <section>
+                <h2><b>I</b>nterface Segregation Principle (ISP)</h2>
+                <blockquote>"Clients should not be forced to depend on interfaces they do not use."</blockquote>
+                <p class="fragment">✅ Houd interfaces <b>klein en gefocust</b>. (SRP)</p>
+                <p class="fragment">✅ Vermijd <b>grote interfaces</b> die klassen dwingen om irrelevante methoden te implementeren.</p>
+            </section>
+
+            <section data-background="ISP_Example.png" data-background-size="contain">
+            </section>
+
+            <section>
+                <h2><b>D</b>ependency Inversion Principle (DIP)</h2>
+                <blockquote>"Depend on abstractions, not concrete implementations."</blockquote>
+                <p class="fragment">✅ Programmeer naar <b>interfaces</b>, niet concrete klassen.</p>
+                <p class="fragment">✅ Gebruik <b>Dependency Injection</b></p>
+            </section>
+
+            <section data-background="DIP_Example.png" data-background-size="contain">
+            </section>
+
+            <section>
+                <h2>Praktische tips</h2>
+                <p class="fragment">Fit for Purpose/overengineering</p>
+                <p class="fragment">Pragmatisch/dogmatisch</p>
+                <p class="fragment">Scope creep, kleine stappen</p>
+                <p class="fragment">Unit tests</p>
+                <p class="fragment">Pick your battles!</p>
+            </section>
+
+            <section>
+                <h2>Reflection & Feedback</h2>
+                <p>Wat vond je lastig?</p>
+                <p>Wat kan je meenemen naar je klus?</p>
+            </section>
+
+            <section>
+                <h2>Meer weten?</h2>
+                <p>Vervolg workshop Code Smells</p>
+            </section>
+
+            <section>
+                <h2>(Luister)Boeken</h2>
+                <p><b>Refactoring</b> - Martin Fowler</p>
+                <p><b>Clean Code</b> - Robert C. Martin (korreltje zout)</p>
+                <p>🎧<b>The Pragmatic Programmer</b> - by David Thomas and Andrew Hunt</p>
+            </section>
+
+            <section>
+                <h2>Youtube</h2>
+                <p>Uncle Bob</p>
+                <p>Zoran Horvat</p>
+            </section>
+
+            <section>
+            <h1>Bedankt!</h1>
+<h3>Maak iets waar je trots op bent!</h3>
+
+<b>Questions? Feedback?</b>
+<p>📧mvandenhoven@vitas.nl</li></p>
+💬<b>MSTeams</b> Martijn van den Hoven</li>
+</section>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js/dist/reveal.js"></script>
+    <script src="plugin/notes/notes.js"></script>
+    <script src="plugin/markdown/markdown.js"></script>
+    <script src="plugin/highlight/highlight.js"></script>
+    <script>
+        // More info about initialization & config:
+        // - https://revealjs.com/initialization/
+        // - https://revealjs.com/config/
+        Reveal.initialize({
+            hash: true,
+
+            // Learn about plugins: https://revealjs.com/plugins/
+            plugins: [RevealMarkdown, RevealHighlight, RevealNotes]
+        });
+    </script>
+</body>
+
+</html>
