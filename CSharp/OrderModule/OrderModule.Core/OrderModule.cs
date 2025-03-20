@@ -7,7 +7,7 @@ public class OrderModule
 {
     private readonly IOrderValidator _orderValidator;
     private readonly IAPICaller _apiCaller;
-    private readonly IPriceCalculator _priceCalculator;
+    private readonly IPriceCalculatorFactory _priceCalculatorFactory;
     private readonly IEmailService _emailService;
     private readonly ILogger _logger;
     
@@ -16,13 +16,13 @@ public class OrderModule
 
     public OrderModule(IOrderValidator orderValidator,
         IAPICaller apiCaller,
-        IPriceCalculator priceCalculator,
+        IPriceCalculatorFactory priceCalculatorFactory,
         IEmailService emailService,
         ILogger logger)
     {
         _orderValidator = orderValidator;
         _apiCaller = apiCaller;
-        _priceCalculator = priceCalculator;
+        _priceCalculatorFactory = priceCalculatorFactory;
         _emailService = emailService;
         _logger = logger;
     }
@@ -48,7 +48,7 @@ public class OrderModule
             _logger.LogInfo("API order placement succeeded");
 
             // Calculate price and record it
-            LastCalculatedPrice = _priceCalculator.CalculatePrice(type, number);
+            LastCalculatedPrice = _priceCalculatorFactory.GetCalculator(type).CalculatePrice(number);
             _logger.LogInfo($"Price calculated: {LastCalculatedPrice}");
 
             // Compose and send email

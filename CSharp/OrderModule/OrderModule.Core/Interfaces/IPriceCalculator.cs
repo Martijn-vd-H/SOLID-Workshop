@@ -4,3 +4,7 @@ public interface IPriceCalculator
 {
     decimal CalculatePrice(HardwareType type, int number);
 }
+
+public interface IPriceCalculatorFactory
+{
+}
