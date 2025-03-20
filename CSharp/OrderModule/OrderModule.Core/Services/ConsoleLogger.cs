@@ -1,5 +1,7 @@
 using OrderModule.Core.Interfaces;
 
+namespace OrderModule.Core.Services;
+
 public class ConsoleLogger : ILogger
 {
     public void LogInfo(string message)

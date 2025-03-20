@@ -1,3 +1,5 @@
+namespace OrderModule.Core;
+
 public enum HardwareType
 {
     Laptop,

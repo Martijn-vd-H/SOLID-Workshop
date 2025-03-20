@@ -1,5 +1,6 @@
 using OrderModule.Core.Interfaces;
-using OrderModule.Core.Services;
+
+namespace OrderModule.Core.Services;
 
 public class EmailService : IEmailService
 {

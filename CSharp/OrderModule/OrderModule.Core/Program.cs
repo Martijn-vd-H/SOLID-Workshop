@@ -1,5 +1,6 @@
 // Create the necessary dependencies
 
+using OrderModule.Core;
 using OrderModule.Core.Interfaces;
 using OrderModule.Core.Services;
 
