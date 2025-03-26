@@ -1,5 +1,7 @@
 using OrderModule.Core.Interfaces;
 
+namespace OrderModule.Core.Services;
+
 public class OrderValidator : IOrderValidator
 {
     public void Validate(HardwareType type, int number)

@@ -1,24 +1,22 @@
-using OrderModule.Core.Interfaces;
 
-public class PriceCalculator : IPriceCalculator
+
+// Factory to get the right calculator dynamically
+
+// Usage
+namespace OrderModule.Core.Services;
+
+public class OrderService
 {
-    public decimal CalculatePrice(HardwareType type, int number)
+    private readonly PriceCalculatorFactory _priceCalculatorFactory;
+
+    public OrderService(PriceCalculatorFactory priceCalculatorFactory)
     {
-        decimal price = 0;
-        switch (type)
-        {
-            case HardwareType.Laptop:
-                price = 1200 * number;
-                break;
-            case HardwareType.Monitor:
-                price = 250 * number;
-                break;
-            case HardwareType.Desk:
-                price = 550 * number;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(type), type, null);
-        }
-        return price;
+        _priceCalculatorFactory = priceCalculatorFactory;
+    }
+
+    public decimal CalculateOrderPrice(HardwareType type, int quantity)
+    {
+        var calculator = _priceCalculatorFactory.GetCalculator(type);
+        return calculator.CalculatePrice(quantity);
     }
 }

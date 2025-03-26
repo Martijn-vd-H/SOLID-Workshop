@@ -1,6 +1,6 @@
-namespace OrderModule.Core.Interfaces;
+﻿namespace OrderModule.Core.Interfaces;
 
 public interface IPriceCalculator
 {
-    decimal CalculatePrice(HardwareType type, int number);
+    decimal CalculatePrice(int number);
 }

@@ -25,24 +25,6 @@ namespace OrderModule.Core.Tests
         }
     }
 
-    public class FakePriceCalculator : IPriceCalculator
-    {
-        public decimal CalculatePrice(HardwareType type, int number)
-        {
-            switch (type)
-            {
-                case HardwareType.Laptop:
-                    return 1200 * number;
-                case HardwareType.Monitor:
-                    return 250 * number;
-                case HardwareType.Desk:
-                    return 550 * number;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
-            }
-        }
-    }
-
     public class FakeEmailService : IEmailService
     {
         public void SendEmail(Email email)
@@ -71,11 +53,11 @@ namespace OrderModule.Core.Tests
         {
             var orderValidator = new FakeOrderValidator();
             var apiCaller = new FakeAPICaller();
-            var priceCalculator = new FakePriceCalculator();
+            var priceCalculatorFactory = new PriceCalculatorFactory();
             var emailService = new FakeEmailService();
             var logger = new FakeLogger();
 
-            _orderModule = new OrderModule(orderValidator, apiCaller, priceCalculator, emailService, logger);
+            _orderModule = new OrderModule(orderValidator, apiCaller, priceCalculatorFactory, emailService, logger);
         }
 
         [Test]
